@@ -11,31 +11,25 @@ services:
     env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
 
   backend:
-    build: ./backend/
+    image: username/kittygram_backend:latest
     env_file: .env
     volumes:
       - static:/static/django/
       - media:/media/
     depends_on:
       - db
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py collectstatic --no-input &&
-             gunicorn --bind 0.0.0.0:8000 kittygram_backend.wsgi"
 
   frontend:
+    image: username/kittygram_frontend:latest
     env_file: .env
-    build: ./frontend/
     command: cp -r /app/build/. /static/
     volumes:
       - static:/static
 
   gateway:
-    build: ./nginx/
+    image: username/kittygram_gateway:latest
     env_file: .env
     ports:
       - 9000:80
