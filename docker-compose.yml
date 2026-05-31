@@ -4,6 +4,8 @@ volumes:
   pg_data:
   static:
   media:
+  certbot_conf:
+  certbot_www:
 
 services:
   db:
@@ -34,15 +36,24 @@ services:
     volumes:
       - static:/static
 
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
   gateway:
     build: ./nginx/
     env_file: .env
     ports:
-      - 80:80
+      - "80:80"
       - "443:443"
     volumes:
       - static:/static
       - media:/media/
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
     depends_on:
       - backend
       - frontend
